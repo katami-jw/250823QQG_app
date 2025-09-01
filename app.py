@@ -35,7 +35,7 @@ def tsp(num_city,time_calc):
 
     # ソルバーの設定と結果の取得
     client = amplify.FixstarsClient()
-    client.token = 'AE/ko4zLSbvzz7WdxZ9ZGv6dAFgTES5gtgz'
+    client.token = 'AE/on8fmXphGRL6EILzXDt6JIsaOVt2SGdU'
     client.parameters.outputs.duplicate = True
     client.parameters.outputs.num_outputs = 0
     client.parameters.timeout = timedelta(milliseconds=time_calc)  # タイムアウト 1000 ミリ秒
@@ -97,20 +97,31 @@ col1, col2 = st.columns(2) #横並びレイアウトを作成
 with col1:
     selected_cities = st.multiselect('都市を選択',list(cities.keys()),default = list(cities.keys()))
 with col2:
-    #選択した都市の座標をndarrayにする
-    selected_coords = np.array([cities[pref] for pref in selected_cities])
-    N = selected_coords.shape[0] #都市数
-    #都市の座標をグラフで表示
-    plt.figure(figsize=(7, 7))
-    plt.plot(selected_coords[:, 0], selected_coords[:, 1], 'o')
-    st.pyplot(plt)
+    if selected_cities:  # 都市が選択されている場合
+        #選択した都市の座標をndarrayにする
+        selected_coords = np.array([cities[pref] for pref in selected_cities])
+        N = selected_coords.shape[0]  # 都市数
+
+        # 都市の座標をグラフで表示
+        plt.figure(figsize=(7, 7))
+        plt.plot(selected_coords[:, 0], selected_coords[:, 1], 'o')
+        st.pyplot(plt)
+    else:  # 都市が選択されていない場合
+        selected_coords = np.array([])  # 空のndarrayをセット
+        N = 0
+
+        # 空のグラフを表示
+        plt.figure(figsize=(7, 7))
+        plt.title('No selected')
+        st.pyplot(plt)
 
 #計算を実行
 button1 = st.button('計算を実行') #ボタンを作成
 if button1:
-    distance_matrix = city_plot(selected_coords,seed=10)   
-    num_calc,q_values,route = tsp(N,time_calc)
-    path_length = show_route(route, distance_matrix, selected_coords)
+    with st.spinner('計算中...', show_time=True):
+        distance_matrix = city_plot(selected_coords,seed=10)   
+        num_calc,q_values,route = tsp(N,time_calc)
+        path_length = show_route(route, distance_matrix, selected_coords)
 
     st.write('計算回数:',num_calc)
     st.write('総距離:',path_length)
